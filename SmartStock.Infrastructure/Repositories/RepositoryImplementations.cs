@@ -225,6 +225,37 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await _context.Users.FirstOrDefaultAsync(u => u.Email == email.ToLower(), cancellationToken);
+        return await _context.Users.FirstOrDefaultAsync(
+            u => u.Email == email.Trim().ToLowerInvariant(), cancellationToken);
+    }
+
+    public async Task<RefreshToken?> GetByRefreshTokenAsync(string token, CancellationToken cancellationToken = default)
+    {
+        return await _context.RefreshTokens
+            .Include(rt => rt.User)
+            .FirstOrDefaultAsync(rt => rt.Token == token, cancellationToken);
+    }
+
+    public Task AddRefreshTokenAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default)
+    {
+        _context.RefreshTokens.Add(refreshToken);
+        // SaveChanges will be called by UpdateAsync
+        return Task.CompletedTask;
+    }
+
+    public async Task RevokeRefreshTokensForUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+        var tokens = await _context.RefreshTokens
+            .Where(rt => rt.UserId == userId && rt.RevokedAt == null && rt.ExpiresAt > now)
+            .ToListAsync(cancellationToken);
+
+        foreach (var token in tokens)
+        {
+            token.RevokedAt = now;
+            token.UpdatedAt = now;
+        }
+
+        await SaveChangesAsync(cancellationToken);
     }
 }

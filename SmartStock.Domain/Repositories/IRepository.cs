@@ -46,4 +46,7 @@ public interface ICreditorRepository : IRepository<Creditor>
 public interface IUserRepository : IRepository<User>
 {
     Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<RefreshToken?> GetByRefreshTokenAsync(string token, CancellationToken cancellationToken = default);
+    Task AddRefreshTokenAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default);
+    Task RevokeRefreshTokensForUserAsync(Guid userId, CancellationToken cancellationToken = default);
 }
