@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using SmartStock.Application.Dtos;
 using SmartStock.Application.Features.Products.Commands;
 using SmartStock.Application.Features.Products.Queries;
-using SmartStock.Domain.Repositories;
 
 namespace SmartStock.Api.Controllers;
 
@@ -14,15 +13,11 @@ namespace SmartStock.Api.Controllers;
 [Authorize]
 public class ProductsController : ControllerBase
 {
-    private readonly IProductRepository _productRepository;
     private readonly IMediator _mediator;
-    private readonly ILogger<ProductsController> _logger;
 
-    public ProductsController(IProductRepository productRepository, IMediator mediator, ILogger<ProductsController> logger)
+    public ProductsController(IMediator mediator)
     {
-        _productRepository = productRepository;
         _mediator = mediator;
-        _logger = logger;
     }
 
     [HttpGet]
