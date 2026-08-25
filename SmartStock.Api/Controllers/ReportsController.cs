@@ -12,12 +12,10 @@ namespace SmartStock.Api.Controllers;
 public class ReportsController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly ILogger<ReportsController> _logger;
 
-    public ReportsController(IMediator mediator, ILogger<ReportsController> logger)
+    public ReportsController(IMediator mediator)
     {
         _mediator = mediator;
-        _logger = logger;
     }
 
     [HttpGet("dashboard")]

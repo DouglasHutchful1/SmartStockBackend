@@ -3,7 +3,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartStock.Application.Features.Creditors.Commands;
-using SmartStock.Application.Features.Creditors.Handlers;
 using SmartStock.Application.Features.Creditors.Queries;
 
 namespace SmartStock.Api.Controllers;
@@ -14,12 +13,10 @@ namespace SmartStock.Api.Controllers;
 public class CreditorsController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly ILogger<CreditorsController> _logger;
 
-    public CreditorsController(IMediator mediator, ILogger<CreditorsController> logger)
+    public CreditorsController(IMediator mediator)
     {
         _mediator = mediator;
-        _logger = logger;
     }
 
     [HttpGet]
