@@ -3,7 +3,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartStock.Application.Features.Sales.Commands;
-using SmartStock.Application.Features.Sales.Handlers;
 using SmartStock.Application.Features.Sales.Queries;
 
 namespace SmartStock.Api.Controllers;
@@ -14,12 +13,10 @@ namespace SmartStock.Api.Controllers;
 public class SalesController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly ILogger<SalesController> _logger;
 
-    public SalesController(IMediator mediator, ILogger<SalesController> logger)
+    public SalesController(IMediator mediator)
     {
         _mediator = mediator;
-        _logger = logger;
     }
 
     [HttpGet]

@@ -12,7 +12,7 @@ public class GetSalesQuery : IRequest<IEnumerable<SaleDto>>
     public int Page { get; set; } = 1;
 }
 
-public class GetSaleByIdQuery : IRequest<SaleDto?>
+public class GetSaleByIdQuery : IRequest<SaleDto>
 {
     public Guid SaleId { get; set; }
     public Guid UserId { get; set; }
