@@ -80,7 +80,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
             throw new InvalidOperationException("Invalid email or password.");
 
         var refreshToken = _tokenService.CreateRefreshToken();
-        user.RefreshTokens.Add(refreshToken);
+        refreshToken.UserId = user.Id;
+        await _userRepository.AddRefreshTokenAsync(refreshToken, cancellationToken);
         user.UpdatedAt = DateTime.UtcNow;
 
         await _userRepository.UpdateAsync(user, cancellationToken);
@@ -120,9 +121,42 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
 
     public async Task<AuthResponse> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        // This would need a way to query RefreshToken - for now, we'll need to extend the infrastructure
-        throw new NotImplementedException("Refresh token handler requires RefreshToken repository");
+        var storedRefreshToken = await _userRepository.GetByRefreshTokenAsync(request.RefreshToken, cancellationToken);
+        if (storedRefreshToken?.User == null || !storedRefreshToken.IsActive)
+            throw new InvalidOperationException("Invalid refresh token.");
+
+        var now = DateTime.UtcNow;
+        storedRefreshToken.RevokedAt = now;
+        storedRefreshToken.UpdatedAt = now;
+
+        var user = storedRefreshToken.User;
+        var newRefreshToken = _tokenService.CreateRefreshToken();
+        newRefreshToken.UserId = user.Id;
+
+        await _userRepository.AddRefreshTokenAsync(newRefreshToken, cancellationToken);
+        user.UpdatedAt = now;
+        await _userRepository.UpdateAsync(user, cancellationToken);
+
+        return new AuthResponse
+        {
+            User = ToUserResponse(user),
+            Token = _tokenService.CreateAccessToken(user),
+            RefreshToken = newRefreshToken.Token
+        };
     }
+
+    private static UserResponse ToUserResponse(User user) => new()
+    {
+        Id = user.Id,
+        Email = user.Email,
+        FullName = user.FullName,
+        BusinessName = user.BusinessName,
+        BusinessType = user.BusinessType,
+        PhoneNumber = user.PhoneNumber,
+        Role = user.Role,
+        CreatedAt = user.CreatedAt,
+        UpdatedAt = user.UpdatedAt
+    };
 }
 
 public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Unit>
@@ -136,7 +170,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Unit>
 
     public async Task<Unit> Handle(LogoutCommand request, CancellationToken cancellationToken)
     {
-        // This would need access to RefreshToken repository to revoke tokens
-        throw new NotImplementedException("Logout handler requires RefreshToken repository");
+        await _userRepository.RevokeRefreshTokensForUserAsync(request.UserId, cancellationToken);
+        return Unit.Value;
     }
 }

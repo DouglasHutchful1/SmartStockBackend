@@ -2,11 +2,10 @@ using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartStock.Application.Dtos;
 using SmartStock.Application.Features.Auth.Commands;
-using SmartStock.Application.Features.Auth.Handlers;
-using SmartStock.Application.Features.Creditors.Handlers;
-using SmartStock.Application.Features.Creditors.Queries;
-using SmartStock.Application.Features.Reports.Handlers;
+using SmartStock.Domain.Entities;
+using SmartStock.Domain.Repositories;
 
 namespace SmartStock.Api.Controllers;
 
@@ -15,12 +14,12 @@ namespace SmartStock.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly ILogger<AuthController> _logger;
+    private readonly IUserRepository _userRepository;
 
-    public AuthController(IMediator mediator, ILogger<AuthController> logger)
+    public AuthController(IMediator mediator, IUserRepository userRepository)
     {
         _mediator = mediator;
-        _logger = logger;
+        _userRepository = userRepository;
     }
 
     [HttpPost("register")]
@@ -91,8 +90,14 @@ public class AuthController : ControllerBase
         try
         {
             var userId = GetUserId();
-            // TODO: Implement GetUserQuery or fetch directly
-            return Ok(new { message = "Implemented in next phase" });
+            if (userId == Guid.Empty)
+                return Unauthorized(new { error = new { code = "INVALID_TOKEN", message = "Invalid user token." } });
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { error = new { code = "USER_NOT_FOUND", message = "User was not found." } });
+
+            return Ok(ToUserResponse(user));
         }
         catch (Exception ex)
         {
@@ -105,4 +110,17 @@ public class AuthController : ControllerBase
         var userIdClaim = User.FindFirstValue("sub") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
         return Guid.TryParse(userIdClaim, out var id) ? id : Guid.Empty;
     }
+
+    private static UserResponse ToUserResponse(User user) => new()
+    {
+        Id = user.Id,
+        Email = user.Email,
+        FullName = user.FullName,
+        BusinessName = user.BusinessName,
+        BusinessType = user.BusinessType,
+        PhoneNumber = user.PhoneNumber,
+        Role = user.Role,
+        CreatedAt = user.CreatedAt,
+        UpdatedAt = user.UpdatedAt
+    };
 }
