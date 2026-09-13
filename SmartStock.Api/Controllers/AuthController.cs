@@ -2,6 +2,7 @@ using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartStock.Application.Common;
 using SmartStock.Application.Dtos;
 using SmartStock.Application.Features.Auth.Commands;
 using SmartStock.Domain.Entities;
@@ -31,6 +32,10 @@ public class AuthController : ControllerBase
             var result = await _mediator.Send(command);
             return Ok(result);
         }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
+        }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { error = new { code = "REGISTRATION_FAILED", message = ex.Message } });
@@ -45,6 +50,10 @@ public class AuthController : ControllerBase
         {
             var result = await _mediator.Send(command);
             return Ok(result);
+        }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
         }
         catch (InvalidOperationException ex)
         {
@@ -61,6 +70,10 @@ public class AuthController : ControllerBase
             var result = await _mediator.Send(command);
             return Ok(result);
         }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
+        }
         catch (Exception ex)
         {
             return BadRequest(new { error = new { code = "REFRESH_FAILED", message = ex.Message } });
@@ -76,6 +89,10 @@ public class AuthController : ControllerBase
             var command = new LogoutCommand { UserId = GetUserId() };
             await _mediator.Send(command);
             return NoContent();
+        }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
         }
         catch (Exception ex)
         {
