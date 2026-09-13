@@ -1,4 +1,5 @@
 using MediatR;
+using SmartStock.Application.Common;
 using SmartStock.Application.Dtos;
 using SmartStock.Application.Features.Products.Commands;
 using SmartStock.Domain.Repositories;
@@ -16,19 +17,35 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 
     public async Task<ProductDto> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
+        var name = ValidationRules.RequireText(request.Name, "Product name");
+        var sku = string.IsNullOrWhiteSpace(request.Sku) ? null : request.Sku.Trim();
+        var barcode = string.IsNullOrWhiteSpace(request.Barcode) ? null : request.Barcode.Trim();
+        var unit = string.IsNullOrWhiteSpace(request.Unit) ? "pcs" : request.Unit.Trim();
+
+        if (request.CostPrice < 0)
+            throw new ValidationException("Cost price cannot be negative.");
+        if (request.SellingPrice < 0)
+            throw new ValidationException("Selling price cannot be negative.");
+        if (request.StockQuantity < 0)
+            throw new ValidationException("Stock quantity cannot be negative.");
+        if (request.LowStockThreshold < 0)
+            throw new ValidationException("Low stock threshold cannot be negative.");
+        if (request.SellingPrice < request.CostPrice)
+            throw new ValidationException("Selling price cannot be lower than cost price.");
+
         var product = new Domain.Entities.Product
         {
             UserId = request.UserId,
-            Name = request.Name,
-            Sku = request.Sku,
-            Barcode = request.Barcode,
+            Name = name,
+            Sku = sku,
+            Barcode = barcode,
             Category = request.Category,
             Description = request.Description,
             CostPrice = request.CostPrice,
             SellingPrice = request.SellingPrice,
             StockQuantity = request.StockQuantity,
             LowStockThreshold = request.LowStockThreshold,
-            Unit = request.Unit,
+            Unit = unit,
             ImageUrl = request.ImageUrl,
             IsActive = true
         };
@@ -71,17 +88,34 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
     {
         var product = await _productRepository.GetByIdAsync(request.Id, cancellationToken);
         if (product == null || product.UserId != request.UserId)
-            throw new InvalidOperationException("Product not found.");
+            throw new NotFoundException("Product not found.");
 
-        product.Name = request.Name;
-        product.Sku = request.Sku;
-        product.Barcode = request.Barcode;
+        var name = ValidationRules.RequireText(request.Name, "Product name");
+        var sku = string.IsNullOrWhiteSpace(request.Sku) ? null : request.Sku.Trim();
+        var barcode = string.IsNullOrWhiteSpace(request.Barcode) ? null : request.Barcode.Trim();
+        var unit = string.IsNullOrWhiteSpace(request.Unit) ? "pcs" : request.Unit.Trim();
+
+        if (request.CostPrice < 0)
+            throw new ValidationException("Cost price cannot be negative.");
+        if (request.SellingPrice < 0)
+            throw new ValidationException("Selling price cannot be negative.");
+        if (request.StockQuantity < 0)
+            throw new ValidationException("Stock quantity cannot be negative.");
+        if (request.LowStockThreshold < 0)
+            throw new ValidationException("Low stock threshold cannot be negative.");
+        if (request.SellingPrice < request.CostPrice)
+            throw new ValidationException("Selling price cannot be lower than cost price.");
+
+        product.Name = name;
+        product.Sku = sku;
+        product.Barcode = barcode;
         product.Category = request.Category;
         product.Description = request.Description;
         product.CostPrice = request.CostPrice;
         product.SellingPrice = request.SellingPrice;
+        product.StockQuantity = request.StockQuantity;
         product.LowStockThreshold = request.LowStockThreshold;
-        product.Unit = request.Unit;
+        product.Unit = unit;
         product.ImageUrl = request.ImageUrl;
         product.UpdatedAt = DateTime.UtcNow;
 
@@ -123,11 +157,14 @@ public class AdjustStockCommandHandler : IRequestHandler<AdjustStockCommand, Pro
     {
         var product = await _productRepository.GetByIdAsync(request.ProductId, cancellationToken);
         if (product == null || product.UserId != request.UserId)
-            throw new InvalidOperationException("Product not found.");
+            throw new NotFoundException("Product not found.");
+
+        if (request.Adjustment == 0)
+            throw new ValidationException("Adjustment cannot be zero.");
 
         var newQuantity = product.StockQuantity + request.Adjustment;
         if (newQuantity < 0)
-            throw new InvalidOperationException("Stock cannot be negative.");
+            throw new ValidationException("Stock cannot be negative.");
 
         product.StockQuantity = newQuantity;
         product.UpdatedAt = DateTime.UtcNow;
@@ -170,7 +207,7 @@ public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand,
     {
         var product = await _productRepository.GetByIdAsync(request.ProductId, cancellationToken);
         if (product == null || product.UserId != request.UserId)
-            throw new InvalidOperationException("Product not found.");
+            throw new NotFoundException("Product not found.");
 
         product.IsActive = false;
         product.UpdatedAt = DateTime.UtcNow;

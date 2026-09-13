@@ -1,7 +1,9 @@
 using System.Text;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SmartStock.Application.Common;
 using SmartStock.Application.DependencyInjection;
 using SmartStock.Application.Dtos;
 using SmartStock.Infrastructure.DependencyInjection;
@@ -24,6 +26,7 @@ if (string.IsNullOrEmpty(connectionString))
 
 builder.Services.AddInfrastructureServices(connectionString);
 builder.Services.AddApplicationServices();
+builder.Services.AddValidatorsFromAssemblyContaining<AppException>();
 
 builder.Services.AddControllers();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
