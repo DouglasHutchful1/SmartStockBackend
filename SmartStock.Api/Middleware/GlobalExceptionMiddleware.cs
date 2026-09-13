@@ -3,16 +3,8 @@ using System.Text.Json;
 
 namespace SmartStock.Api.Middleware;
 
-public class GlobalExceptionMiddleware
+public class GlobalExceptionMiddleware(ILogger<GlobalExceptionMiddleware> _logger,RequestDelegate _next)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<GlobalExceptionMiddleware> _logger;
-
-    public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
 
     public async Task InvokeAsync(HttpContext context)
     {

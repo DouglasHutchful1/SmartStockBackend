@@ -94,7 +94,6 @@ SmartStockBackend/
 │   ├── BusinessRulesTests.cs
 │   └── SmartStock.Tests.csproj
 ├── SmartStockBackend.sln
-├── qodana.yaml
 ├── .gitignore
 ├── README.md
 └── docs/
