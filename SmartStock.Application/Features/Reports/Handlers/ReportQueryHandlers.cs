@@ -1,5 +1,6 @@
 using System.Globalization;
 using MediatR;
+using SmartStock.Application.Common;
 using SmartStock.Application.Dtos;
 using SmartStock.Application.Features.Reports.Queries;
 using SmartStock.Domain.Repositories;
@@ -57,6 +58,9 @@ public class GetSalesSummaryQueryHandler : IRequestHandler<GetSalesSummaryQuery,
 
     public async Task<IEnumerable<TimeSeriesPoint>> Handle(GetSalesSummaryQuery request, CancellationToken cancellationToken)
     {
+        if (request.From.HasValue && request.To.HasValue && request.From > request.To)
+            throw new ValidationException("From date cannot be later than To date.");
+
         var from = request.From ?? DateTime.UtcNow.AddMonths(-1);
         var to = request.To ?? DateTime.UtcNow;
 

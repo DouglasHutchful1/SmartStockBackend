@@ -2,6 +2,7 @@ using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartStock.Application.Common;
 using SmartStock.Application.Features.Reports.Queries;
 
 namespace SmartStock.Api.Controllers;
@@ -28,6 +29,10 @@ public class ReportsController : ControllerBase
             var result = await _mediator.Send(query);
             return Ok(result);
         }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
+        }
         catch (Exception ex)
         {
             return BadRequest(new { error = new { code = "DASHBOARD_FAILED", message = ex.Message } });
@@ -43,6 +48,10 @@ public class ReportsController : ControllerBase
             var query = new GetSalesSummaryQuery { UserId = userId, From = from, To = to, GroupBy = groupBy };
             var result = await _mediator.Send(query);
             return Ok(result);
+        }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
         }
         catch (Exception ex)
         {
@@ -60,6 +69,10 @@ public class ReportsController : ControllerBase
             var result = await _mediator.Send(query);
             return Ok(result);
         }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
+        }
         catch (Exception ex)
         {
             return BadRequest(new { error = new { code = "TOP_PRODUCTS_FAILED", message = ex.Message } });
@@ -75,6 +88,10 @@ public class ReportsController : ControllerBase
             var query = new GetInventoryValueQuery { UserId = userId };
             var result = await _mediator.Send(query);
             return Ok(result);
+        }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
         }
         catch (Exception ex)
         {
