@@ -2,6 +2,7 @@ using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartStock.Application.Common;
 using SmartStock.Application.Features.Creditors.Commands;
 using SmartStock.Application.Features.Creditors.Queries;
 
@@ -29,6 +30,10 @@ public class CreditorsController : ControllerBase
             var result = await _mediator.Send(query);
             return Ok(result);
         }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
+        }
         catch (Exception ex)
         {
             return BadRequest(new { error = new { code = "LIST_FAILED", message = ex.Message } });
@@ -45,6 +50,10 @@ public class CreditorsController : ControllerBase
             var result = await _mediator.Send(query);
             return Ok(result);
         }
+        catch (AppException ex) when (ex is NotFoundException)
+        {
+            return NotFound(new { error = new { code = ex.Code, message = ex.Message } });
+        }
         catch (InvalidOperationException)
         {
             return NotFound(new { error = new { code = "CREDITOR_NOT_FOUND", message = "Creditor not found." } });
@@ -59,6 +68,10 @@ public class CreditorsController : ControllerBase
             command.UserId = GetUserId();
             var result = await _mediator.Send(command);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
         }
         catch (Exception ex)
         {
@@ -76,6 +89,14 @@ public class CreditorsController : ControllerBase
             var result = await _mediator.Send(command);
             return Ok(result);
         }
+        catch (AppException ex) when (ex is NotFoundException)
+        {
+            return NotFound(new { error = new { code = ex.Code, message = ex.Message } });
+        }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
+        }
         catch (InvalidOperationException)
         {
             return NotFound(new { error = new { code = "CREDITOR_NOT_FOUND", message = "Creditor not found." } });
@@ -91,6 +112,10 @@ public class CreditorsController : ControllerBase
             var command = new DeleteCreditorCommand { CreditorId = id, UserId = userId };
             await _mediator.Send(command);
             return NoContent();
+        }
+        catch (AppException ex) when (ex is NotFoundException)
+        {
+            return NotFound(new { error = new { code = ex.Code, message = ex.Message } });
         }
         catch (InvalidOperationException)
         {
@@ -108,6 +133,10 @@ public class CreditorsController : ControllerBase
             var result = await _mediator.Send(query);
             return Ok(result);
         }
+        catch (AppException ex) when (ex is NotFoundException)
+        {
+            return NotFound(new { error = new { code = ex.Code, message = ex.Message } });
+        }
         catch (InvalidOperationException)
         {
             return NotFound(new { error = new { code = "CREDITOR_NOT_FOUND", message = "Creditor not found." } });
@@ -123,6 +152,14 @@ public class CreditorsController : ControllerBase
             command.UserId = GetUserId();
             var result = await _mediator.Send(command);
             return CreatedAtAction(nameof(GetPayments), new { id }, result);
+        }
+        catch (AppException ex) when (ex is NotFoundException)
+        {
+            return NotFound(new { error = new { code = ex.Code, message = ex.Message } });
+        }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
         }
         catch (InvalidOperationException ex)
         {

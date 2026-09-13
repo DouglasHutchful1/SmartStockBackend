@@ -1,4 +1,5 @@
 using MediatR;
+using SmartStock.Application.Common;
 using SmartStock.Application.Dtos;
 using SmartStock.Application.Features.Creditors.Commands;
 using SmartStock.Domain.Repositories;
@@ -16,10 +17,14 @@ public class CreateCreditorCommandHandler : IRequestHandler<CreateCreditorComman
 
     public async Task<CreditorResponse> Handle(CreateCreditorCommand request, CancellationToken cancellationToken)
     {
+        var name = ValidationRules.RequireText(request.Name, "Creditor name");
+        if (request.CreditLimit < 0)
+            throw new ValidationException("Credit limit cannot be negative.");
+
         var creditor = new Domain.Entities.Creditor
         {
             UserId = request.UserId,
-            Name = request.Name.Trim(),
+            Name = name,
             PhoneNumber = request.PhoneNumber?.Trim(),
             Email = request.Email?.Trim(),
             Address = request.Address,
@@ -61,9 +66,13 @@ public class UpdateCreditorCommandHandler : IRequestHandler<UpdateCreditorComman
     {
         var creditor = await _creditorRepository.GetByIdAsync(request.CreditorId, cancellationToken);
         if (creditor == null || creditor.UserId != request.UserId)
-            throw new InvalidOperationException("Creditor not found.");
+            throw new NotFoundException("Creditor not found.");
 
-        creditor.Name = request.Name.Trim();
+        var name = ValidationRules.RequireText(request.Name, "Creditor name");
+        if (request.CreditLimit < 0)
+            throw new ValidationException("Credit limit cannot be negative.");
+
+        creditor.Name = name;
         creditor.PhoneNumber = request.PhoneNumber?.Trim();
         creditor.Email = request.Email?.Trim();
         creditor.Address = request.Address;
@@ -104,7 +113,7 @@ public class DeleteCreditorCommandHandler : IRequestHandler<DeleteCreditorComman
     {
         var creditor = await _creditorRepository.GetByIdAsync(request.CreditorId, cancellationToken);
         if (creditor == null || creditor.UserId != request.UserId)
-            throw new InvalidOperationException("Creditor not found.");
+            throw new NotFoundException("Creditor not found.");
 
         await _creditorRepository.DeleteAsync(creditor, cancellationToken);
 
@@ -126,11 +135,16 @@ public class CreateCreditorPaymentCommandHandler : IRequestHandler<CreateCredito
     public async Task<CreditorPaymentResponse> Handle(CreateCreditorPaymentCommand request, CancellationToken cancellationToken)
     {
         if (request.Amount <= 0)
-            throw new InvalidOperationException("Payment amount must be greater than zero.");
+            throw new ValidationException("Payment amount must be greater than zero.");
+        if (string.IsNullOrWhiteSpace(request.PaymentMethod))
+            throw new ValidationException("Payment method is required.");
 
         var creditor = await _creditorRepository.GetByIdAsync(request.CreditorId, cancellationToken);
         if (creditor == null || creditor.UserId != request.UserId)
-            throw new InvalidOperationException("Creditor not found.");
+            throw new NotFoundException("Creditor not found.");
+
+        if (request.Amount > creditor.TotalOwed + 0.001m)
+            throw new ValidationException("Payment amount cannot exceed the creditor's outstanding balance.");
 
         var payment = new Domain.Entities.CreditorPayment
         {
