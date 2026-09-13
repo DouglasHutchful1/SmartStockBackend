@@ -2,6 +2,7 @@ using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartStock.Application.Common;
 using SmartStock.Application.Features.Sales.Commands;
 using SmartStock.Application.Features.Sales.Queries;
 
@@ -36,6 +37,10 @@ public class SalesController : ControllerBase
             var result = await _mediator.Send(query);
             return Ok(result);
         }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
+        }
         catch (Exception ex)
         {
             return BadRequest(new { error = new { code = "LIST_FAILED", message = ex.Message } });
@@ -52,6 +57,14 @@ public class SalesController : ControllerBase
             var result = await _mediator.Send(query);
             return Ok(result);
         }
+        catch (NotFoundException)
+        {
+            return NotFound(new { error = new { code = "SALE_NOT_FOUND", message = "Sale not found." } });
+        }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
+        }
         catch (InvalidOperationException)
         {
             return NotFound(new { error = new { code = "SALE_NOT_FOUND", message = "Sale not found." } });
@@ -66,6 +79,10 @@ public class SalesController : ControllerBase
             command.UserId = GetUserId();
             var result = await _mediator.Send(command);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
         }
         catch (InvalidOperationException ex)
         {
@@ -82,6 +99,10 @@ public class SalesController : ControllerBase
             var command = new RefundSaleCommand { SaleId = id, UserId = userId };
             var result = await _mediator.Send(command);
             return Ok(result);
+        }
+        catch (AppException ex)
+        {
+            return BadRequest(new { error = new { code = ex.Code, message = ex.Message } });
         }
         catch (InvalidOperationException ex)
         {
