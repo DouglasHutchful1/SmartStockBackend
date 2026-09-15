@@ -41,6 +41,7 @@ public interface ICreditorRepository : IRepository<Creditor>
 {
     Task<IEnumerable<Creditor>> GetUserCreditorsAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<IEnumerable<CreditorPayment>> GetCreditorPaymentsAsync(Guid creditorId, CancellationToken cancellationToken = default);
+    Task<CreditorPayment> AddPaymentAsync(CreditorPayment payment, CancellationToken cancellationToken = default);
 }
 
 public interface IUserRepository : IRepository<User>

@@ -172,18 +172,17 @@ public class CreateCreditorPaymentCommandHandler : IRequestHandler<CreateCredito
         creditor.UpdatedAt = DateTime.UtcNow;
         await _creditorRepository.UpdateAsync(creditor, cancellationToken);
 
-        // Note: We need to add payment to db context, but we don't have a PaymentRepository
-        // For now, this is a conceptual structure that would need to be completed with actual persistence
+        var p = await _creditorRepository.AddPaymentAsync(payment, cancellationToken);
 
         return new CreditorPaymentResponse
         {
-            Id = Guid.NewGuid(),
-            CreditorId = payment.CreditorId,
-            SaleId = payment.SaleId,
-            Amount = payment.Amount,
-            PaymentMethod = payment.PaymentMethod,
-            Notes = payment.Notes,
-            PaidAt = DateTime.UtcNow
+            Id = p.Id,
+            CreditorId = p.CreditorId,
+            SaleId = p.SaleId,
+            Amount = p.Amount,
+            PaymentMethod = p.PaymentMethod,
+            Notes = p.Notes,
+            PaidAt = p.PaidAt
         };
     }
 }

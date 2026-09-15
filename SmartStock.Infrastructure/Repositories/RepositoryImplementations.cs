@@ -176,7 +176,17 @@ public class CreditorRepository : ICreditorRepository
 
     public async Task<IEnumerable<CreditorPayment>> GetCreditorPaymentsAsync(Guid creditorId, CancellationToken cancellationToken = default)
     {
-        return await _context.CreditorPayments.Where(p => p.CreditorId == creditorId).ToListAsync(cancellationToken);
+        return await _context.CreditorPayments
+            .Where(p => p.CreditorId == creditorId)
+            .OrderByDescending(p => p.PaidAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<CreditorPayment> AddPaymentAsync(CreditorPayment payment, CancellationToken cancellationToken = default)
+    {
+        _context.CreditorPayments.Add(payment);
+        await SaveChangesAsync(cancellationToken);
+        return payment;
     }
 }
 
