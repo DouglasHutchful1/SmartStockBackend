@@ -50,4 +50,5 @@ public interface IUserRepository : IRepository<User>
     Task<RefreshToken?> GetByRefreshTokenAsync(string token, CancellationToken cancellationToken = default);
     Task AddRefreshTokenAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default);
     Task RevokeRefreshTokensForUserAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<RefreshToken> RotateRefreshTokenAsync(RefreshToken existingToken, RefreshToken newToken, CancellationToken cancellationToken = default);
 }

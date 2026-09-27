@@ -268,4 +268,24 @@ public class UserRepository : IUserRepository
 
         await SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<RefreshToken> RotateRefreshTokenAsync(RefreshToken existingToken, RefreshToken newToken, CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+
+        // Revoke the existing token if it still exists and is active
+        var stored = await _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Id == existingToken.Id, cancellationToken);
+        if (stored != null)
+        {
+            stored.RevokedAt = now;
+            stored.UpdatedAt = now;
+        }
+
+        newToken.UserId = existingToken.UserId;
+        _context.RefreshTokens.Add(newToken);
+
+        await SaveChangesAsync(cancellationToken);
+
+        return newToken;
+    }
 }

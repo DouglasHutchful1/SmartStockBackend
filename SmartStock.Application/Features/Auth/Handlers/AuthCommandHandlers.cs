@@ -126,14 +126,14 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
             throw new InvalidOperationException("Invalid refresh token.");
 
         var now = DateTime.UtcNow;
-        storedRefreshToken.RevokedAt = now;
-        storedRefreshToken.UpdatedAt = now;
-
         var user = storedRefreshToken.User;
+
         var newRefreshToken = _tokenService.CreateRefreshToken();
         newRefreshToken.UserId = user.Id;
 
-        await _userRepository.AddRefreshTokenAsync(newRefreshToken, cancellationToken);
+        // use repository rotation to atomically revoke old token and persist new one
+        var persisted = await _userRepository.RotateRefreshTokenAsync(storedRefreshToken, newRefreshToken, cancellationToken);
+
         user.UpdatedAt = now;
         await _userRepository.UpdateAsync(user, cancellationToken);
 
@@ -141,7 +141,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
         {
             User = ToUserResponse(user),
             Token = _tokenService.CreateAccessToken(user),
-            RefreshToken = newRefreshToken.Token
+            RefreshToken = persisted.Token
         };
     }
 
