@@ -56,6 +56,12 @@ builder.Services.AddSwaggerGen(c =>
         Name = "Authorization",
         Type = SecuritySchemeType.ApiKey
     });
+    // include xml comments from generated doc file
+    var xmlFile = System.IO.Path.ChangeExtension(System.Reflection.Assembly.GetExecutingAssembly().Location, ".xml");
+    if (System.IO.File.Exists(xmlFile))
+    {
+        c.IncludeXmlComments(xmlFile);
+    }
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {

@@ -19,6 +19,9 @@ public class ReportsController : ControllerBase
         _mediator = mediator;
     }
 
+    /// <summary>
+    /// Get dashboard summary metrics for the current user.
+    /// </summary>
     [HttpGet("dashboard")]
     public async Task<IActionResult> GetDashboard()
     {
@@ -39,6 +42,9 @@ public class ReportsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Get  sales summary grouped by day/week/month.
+    /// </summary>
     [HttpGet("sales-summary")]
     public async Task<IActionResult> SalesSummary([FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] string groupBy = "day")
     {
@@ -59,6 +65,9 @@ public class ReportsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Get top selling products for the specified date range.
+    /// </summary>
     [HttpGet("top-products")]
     public async Task<IActionResult> TopProducts([FromQuery] int limit = 10, [FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
     {
@@ -79,6 +88,9 @@ public class ReportsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Get inventory cost and selling value totals.
+    /// </summary>
     [HttpGet("inventory-value")]
     public async Task<IActionResult> InventoryValue()
     {

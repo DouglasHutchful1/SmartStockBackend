@@ -20,6 +20,9 @@ public class CreditorsController : ControllerBase
         _mediator = mediator;
     }
 
+    /// <summary>
+    /// Get a list of creditors for the current user, optionally filtered by search term.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? search)
     {
@@ -40,6 +43,9 @@ public class CreditorsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Get creditor details by id for the current user.
+    /// </summary>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -60,6 +66,9 @@ public class CreditorsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Create a new creditor record for the current user.
+    /// </summary>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCreditorCommand command)
     {
@@ -79,6 +88,9 @@ public class CreditorsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Update an existing creditor for the current user.
+    /// </summary>
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCreditorCommand command)
     {
@@ -103,6 +115,9 @@ public class CreditorsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Delete a creditor record for the current user.
+    /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -123,6 +138,9 @@ public class CreditorsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Get all payments made to a creditor.
+    /// </summary>
     [HttpGet("{id}/payments")]
     public async Task<IActionResult> GetPayments(Guid id)
     {
@@ -143,6 +161,9 @@ public class CreditorsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Create a payment record for a creditor and adjust balances.
+    /// </summary>
     [HttpPost("{id}/payments")]
     public async Task<IActionResult> CreatePayment(Guid id, [FromBody] CreateCreditorPaymentCommand command)
     {

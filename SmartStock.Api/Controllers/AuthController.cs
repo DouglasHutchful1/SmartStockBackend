@@ -23,6 +23,9 @@ public class AuthController : ControllerBase
         _userRepository = userRepository;
     }
 
+    /// <summary>
+    /// Register a new user and return authentication tokens.
+    /// </summary>
     [HttpPost("register")]
     [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] RegisterCommand command)
@@ -42,6 +45,9 @@ public class AuthController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Authenticate a user and return access and refresh tokens.
+    /// </summary>
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginCommand command)
@@ -61,6 +67,9 @@ public class AuthController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Rotate a refresh token and return a new access token and refresh token.
+    /// </summary>
     [HttpPost("refresh")]
     [AllowAnonymous]
     public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command)
@@ -80,6 +89,9 @@ public class AuthController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Logout the current user by revoking active refresh tokens.
+    /// </summary>
     [HttpPost("logout")]
     [Authorize]
     public async Task<IActionResult> Logout()
@@ -100,6 +112,9 @@ public class AuthController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Get current authenticated user details.
+    /// </summary>
     [HttpGet("me")]
     [Authorize]
     public async Task<IActionResult> Me()

@@ -20,6 +20,9 @@ public class SalesController : ControllerBase
         _mediator = mediator;
     }
 
+    /// <summary>
+    /// List sales for the current user with optional date range and status filters.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> List([FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] string? status, [FromQuery] int page = 1)
     {
@@ -47,6 +50,9 @@ public class SalesController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Get sale details by id for the current user.
+    /// </summary>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -71,6 +77,9 @@ public class SalesController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Create a new sale and adjust product stock accordingly.
+    /// </summary>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateSaleCommand command)
     {
@@ -90,6 +99,9 @@ public class SalesController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Refund a sale and restore product stock.
+    /// </summary>
     [HttpPost("{id}/refund")]
     public async Task<IActionResult> Refund(Guid id)
     {

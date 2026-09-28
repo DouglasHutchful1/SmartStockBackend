@@ -21,6 +21,9 @@ public class ProductsController : ControllerBase
         _mediator = mediator;
     }
 
+    /// <summary>
+    /// Get a paginated list of products for the current user. Supports search, category filter, and low-stock filter.
+    /// </summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProductDto>>> GetAll([FromQuery] string? search, [FromQuery] string? category, [FromQuery] bool lowStock = false, [FromQuery] int page = 1)
     {
@@ -48,6 +51,9 @@ public class ProductsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Get product details by id for the current user.
+    /// </summary>
     [HttpGet("{id}")]
     public async Task<ActionResult<ProductDto>> GetById(Guid id)
     {
@@ -68,6 +74,9 @@ public class ProductsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Lookup a product by barcode for the current user.
+    /// </summary>
     [HttpGet("by-barcode/{barcode}")]
     public async Task<ActionResult<ProductDto>> GetByBarcode(string barcode)
     {
@@ -88,6 +97,9 @@ public class ProductsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Create a new product under the current user.
+    /// </summary>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
     {
@@ -122,6 +134,9 @@ public class ProductsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Update an existing product owned by the current user.
+    /// </summary>
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest request)
     {
@@ -153,6 +168,9 @@ public class ProductsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Adjust the stock quantity for a product by a positive or negative value.
+    /// </summary>
     [HttpPatch("{id}/stock")]
     public async Task<IActionResult> AdjustStock(Guid id, [FromBody] StockAdjustmentRequest request)
     {
@@ -178,6 +196,9 @@ public class ProductsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Soft-delete a product (mark as inactive) for the current user.
+    /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
