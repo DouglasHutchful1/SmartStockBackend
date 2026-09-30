@@ -7,6 +7,6 @@
     "numReplicas": 1,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10,
-    "startCommand": "bash ./start.sh"
+    "startCommand": "dotnet /app/SmartStock.Api.dll"
   }
 }
