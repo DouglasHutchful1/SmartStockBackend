@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Npgsql;
 using SmartStock.Application.Common;
 using SmartStock.Application.DependencyInjection;
 using SmartStock.Application.Dtos;
@@ -11,6 +12,47 @@ using SmartStock.Infrastructure.Data;
 using SmartStock.Infrastructure.DependencyInjection;
 using SmartStock.Infrastructure.Services;
 using SmartStock.Api.Middleware;
+
+static string? ResolveConnectionString()
+{
+    var candidates = new[]
+    {
+        Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection"),
+       
+        new ConfigurationBuilder().AddJsonFile("appsettings.json", optional: true).AddJsonFile("appsettings.Development.json", optional: true).Build().GetConnectionString("DefaultConnection")
+    };
+
+    foreach (var candidate in candidates)
+    {
+        if (string.IsNullOrWhiteSpace(candidate))
+        {
+            continue;
+        }
+
+        var trimmed = candidate.Trim();
+
+        if (trimmed.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+        {
+            var uri = new Uri(trimmed);
+            var builder = new NpgsqlConnectionStringBuilder
+            {
+                Host = uri.Host,
+                Port = uri.IsDefaultPort ? 5432 : uri.Port,
+                Database = uri.AbsolutePath.Trim('/'),
+                Username = uri.UserInfo.Contains(':') ? uri.UserInfo.Split(':', 2)[0] : uri.UserInfo,
+                Password = uri.UserInfo.Contains(':') ? Uri.UnescapeDataString(uri.UserInfo.Split(':', 2)[1]) : string.Empty,
+                SslMode = SslMode.Require
+            };
+
+            return builder.ConnectionString;
+        }
+
+        return trimmed;
+    }
+
+    return null;
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,9 +70,9 @@ if (jwtSettings == null || string.IsNullOrWhiteSpace(jwtSettings.Secret))
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-if (string.IsNullOrEmpty(connectionString))
-    throw new InvalidOperationException("Connection string is not configured.");
+var connectionString = ResolveConnectionString();
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException("Database connection string is not configured. Set ConnectionStrings__DefaultConnection or DATABASE_URL in the environment.");
 
 builder.Services.AddInfrastructureServices(connectionString);
 builder.Services.AddApplicationServices();
@@ -93,9 +135,16 @@ var autoMigrate = builder.Configuration.GetValue<bool>("Database:AutoMigrate", f
 
 if (autoMigrate)
 {
-    using var scope = app.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.Migrate();
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        throw new InvalidOperationException("Auto-migration is enabled, but the database connection string is invalid or the database is unreachable. Check ConnectionStrings__DefaultConnection or DATABASE_URL.", ex);
+    }
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
