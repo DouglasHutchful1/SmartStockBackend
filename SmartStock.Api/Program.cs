@@ -149,7 +149,11 @@ if (autoMigrate)
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-if (app.Environment.IsDevelopment())
+var enableSwagger = app.Environment.IsDevelopment()
+    || builder.Configuration.GetValue<bool>("Swagger:Enabled", false)
+    || bool.TryParse(Environment.GetEnvironmentVariable("ENABLE_SWAGGER"), out var swaggerEnabled) && swaggerEnabled;
+
+if (enableSwagger)
 {
     app.UseSwagger();
     app.UseSwaggerUI();
