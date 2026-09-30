@@ -1,16 +1,24 @@
 using System.Text;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SmartStock.Application.Common;
 using SmartStock.Application.DependencyInjection;
 using SmartStock.Application.Dtos;
+using SmartStock.Infrastructure.Data;
 using SmartStock.Infrastructure.DependencyInjection;
 using SmartStock.Infrastructure.Services;
 using SmartStock.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(port))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
 
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
 if (jwtSettings == null || string.IsNullOrWhiteSpace(jwtSettings.Secret))
@@ -79,6 +87,16 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+var autoMigrate = builder.Configuration.GetValue<bool>("Database:AutoMigrate", false)
+    || builder.Configuration.GetValue<bool>("AUTO_MIGRATE", false);
+
+if (autoMigrate)
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.Migrate();
+}
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
